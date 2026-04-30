@@ -10,6 +10,9 @@ export default function App() {
   const [myGroups, setMyGroups] = useState([])
   const [selectedGroup, setSelectedGroup] = useState(null)
 
+  const [editingCode, setEditingCode] = useState(false)
+  const [newGroupCode, setNewGroupCode] = useState('')
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -33,6 +36,25 @@ export default function App() {
   const logout = async () => {
     await supabase.auth.signOut()
     window.location.reload()
+  }
+
+  const handleUpdateCode = async () => {
+    if (!newGroupCode || newGroupCode === selectedGroup.code) {
+      setEditingCode(false)
+      return
+    }
+    const { error } = await supabase
+      .from('groups')
+      .update({ code: newGroupCode })
+      .eq('id', selectedGroup.id)
+      
+    if (error) {
+      alert('Error updating code: ' + error.message)
+    } else {
+      setSelectedGroup({ ...selectedGroup, code: newGroupCode })
+      setMyGroups(myGroups.map(g => g.id === selectedGroup.id ? { ...g, code: newGroupCode } : g))
+      setEditingCode(false)
+    }
   }
 
   if (!user) return <Auth />
@@ -110,7 +132,30 @@ export default function App() {
             >
               <span>←</span> Back to Groups
             </button>
-            <h2 style={{ marginBottom: '24px', fontSize: '28px' }}>{selectedGroup.name}</h2>
+            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0, fontSize: '28px' }}>{selectedGroup.name}</h2>
+              {selectedGroup.created_by === user.id && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '8px' }}>
+                  {!editingCode ? (
+                    <>
+                      <span style={{ color: 'var(--text-secondary)' }}>Code: <strong style={{ color: 'var(--accent-hover)' }}>{selectedGroup.code}</strong></span>
+                      <button className="btn-secondary" style={{ padding: '4px 12px', fontSize: '12px' }} onClick={() => { setEditingCode(true); setNewGroupCode(selectedGroup.code); }}>Edit</button>
+                    </>
+                  ) : (
+                    <>
+                      <input 
+                        className="modern-input" 
+                        value={newGroupCode} 
+                        onChange={(e) => setNewGroupCode(e.target.value)}
+                        style={{ padding: '6px 12px', minWidth: '100px' }}
+                      />
+                      <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={handleUpdateCode}>Save</button>
+                      <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => setEditingCode(false)}>Cancel</button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             <Gallery groupId={selectedGroup.id} />
           </div>
         )}
