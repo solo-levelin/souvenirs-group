@@ -9,32 +9,20 @@ export default function CreateGroup() {
     e.preventDefault()
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      console.log('User:', user.id)
       
-      // 1. Create group
       const { data: groupData, error: groupError } = await supabase
         .from('groups')
         .insert([{ name, code, created_by: user.id }])
         .select()
 
-      if (groupError) {
-        console.log('Group error:', groupError)
-        throw groupError
-      }
+      if (groupError) throw groupError
 
-      console.log('Group created:', groupData)
-
-      // 2. Add creator as member
       const { error: memberError } = await supabase
         .from('group_members')
         .insert([{ group_id: groupData[0].id, user_id: user.id }])
 
-      if (memberError) {
-        console.log('Member error:', memberError)
-        // Ignore "already member" error
-        if (!memberError.message.includes('duplicate')) {
-          throw memberError
-        }
+      if (memberError && !memberError.message.includes('duplicate')) {
+        throw memberError
       }
 
       alert('Group created! Code: ' + code)
@@ -42,28 +30,29 @@ export default function CreateGroup() {
       setCode('')
       window.location.reload()
     } catch (error) {
-      console.log('Final error:', error)
       alert('Error: ' + error.message)
     }
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Create Group</h2>
+    <div className="glass-panel" style={{ padding: '24px', flex: 1, minWidth: '280px' }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Create New Group</h3>
       <form onSubmit={createGroup}>
         <input
+          className="modern-input"
           placeholder="Group Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ padding: '10px', margin: '10px', width: '200px' }}
+          style={{ marginBottom: '12px' }}
         />
         <input
-          placeholder="Unique Code"
+          className="modern-input"
+          placeholder="Unique Code (e.g., TRIP2024)"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          style={{ padding: '10px', margin: '10px', width: '200px' }}
+          style={{ marginBottom: '20px' }}
         />
-        <button type="submit" style={{ padding: '10px 20px' }}>Create</button>
+        <button type="submit" className="btn-primary" style={{ width: '100%' }}>Create Group</button>
       </form>
     </div>
   )

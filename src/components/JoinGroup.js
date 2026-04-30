@@ -19,24 +19,29 @@ export default function JoinGroup() {
         .from('group_members')
         .insert([{ group_id: group.id, user_id: user.id }])
 
-      if (!error) alert('Joined group!')
-      else alert('Already member or error')
+      if (!error) {
+        alert('Joined group!')
+        window.location.reload()
+      } else {
+        alert('Already member or error')
+      }
     } else {
       alert('Group not found')
     }
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Join Group</h2>
+    <div className="glass-panel" style={{ padding: '24px', flex: 1, minWidth: '280px' }}>
+      <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Join Group</h3>
       <form onSubmit={joinGroup}>
         <input
+          className="modern-input"
           placeholder="Enter Group Code"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          style={{ padding: '10px', margin: '10px', width: '200px' }}
+          style={{ marginBottom: '20px' }}
         />
-        <button type="submit" style={{ padding: '10px 20px' }}>Join</button>
+        <button type="submit" className="btn-secondary" style={{ width: '100%', padding: '12px' }}>Join Group</button>
       </form>
     </div>
   )

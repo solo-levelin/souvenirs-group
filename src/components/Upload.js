@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 
 const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME
@@ -6,44 +6,76 @@ const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET
 
 export default function Upload({ groupId }) {
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const fileInputRef = useRef(null)
 
-  const uploadFile = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const uploadFiles = async (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
 
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', UPLOAD_PRESET)
-
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
-      { method: 'POST', body: formData }
-    )
-    const data = await res.json()
-
+    setProgress(0)
+    
     const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('media').insert([{
-      group_id: groupId,
-      url: data.secure_url,
-      type: file.type.startsWith('video') ? 'video' : 'photo',
-      uploaded_by: user.id
-    }])
+    let completed = 0;
+    
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', UPLOAD_PRESET)
+
+      try {
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+          { method: 'POST', body: formData }
+        )
+        const data = await res.json()
+        
+        await supabase.from('media').insert([{
+          group_id: groupId,
+          url: data.secure_url,
+          type: file.type.startsWith('video') ? 'video' : 'photo',
+          uploaded_by: user.id
+        }])
+        
+        completed++;
+        setProgress(Math.round((completed / files.length) * 100))
+      } catch (err) {
+        console.error("Upload failed for file:", file.name, err)
+      }
+    })
+
+    await Promise.all(uploadPromises)
 
     setUploading(false)
-    alert('Uploaded!')
+    if (fileInputRef.current) fileInputRef.current.value = ''
     window.location.reload()
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="glass-panel animate-fade-in" style={{ padding: '24px', marginBottom: '24px', textAlign: 'center' }}>
+      <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Add Memories</h3>
+      
       <input
         type="file"
+        multiple
         accept="image/*,video/*"
-        onChange={uploadFile}
+        onChange={uploadFiles}
         disabled={uploading}
+        style={{ display: 'none' }}
+        id="file-upload"
+        ref={fileInputRef}
       />
-      {uploading && <p>Uploading...</p>}
+      <label 
+        htmlFor="file-upload" 
+        className="btn-primary"
+        style={{ display: 'inline-block', cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
+      >
+        {uploading ? `Uploading... ${progress}%` : 'Select Photos & Videos'}
+      </label>
+      <p style={{ fontSize: '12px', marginTop: '12px', color: 'var(--text-secondary)' }}>
+        You can select multiple files at once
+      </p>
     </div>
   )
 }

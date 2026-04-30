@@ -25,29 +25,37 @@ export default function Auth() {
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
+    <div style={{ maxWidth: '400px', margin: '10vh auto', padding: '40px' }} className="glass-panel animate-fade-in">
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '28px', color: 'var(--accent-hover)', margin: '0 0 8px 0' }}>📸 Souvenirs</h2>
+        <p style={{ margin: 0 }}>{isLogin ? 'Welcome back!' : 'Create your account'}</p>
+      </div>
       <form onSubmit={handleAuth}>
         <input
+          className="modern-input"
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
+          style={{ marginBottom: '16px' }}
         />
         <input
+          className="modern-input"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{ width: '100%', padding: '10px', margin: '10px 0' }}
+          style={{ marginBottom: '24px' }}
         />
-        <button type="submit" style={{ width: '100%', padding: '10px' }}>
+        <button type="submit" className="btn-primary" style={{ width: '100%', padding: '14px' }}>
           {isLogin ? 'Login' : 'Sign Up'}
         </button>
       </form>
-      <p onClick={() => setIsLogin(!isLogin)} style={{ cursor: 'pointer', color: 'blue' }}>
-        {isLogin ? 'Need account? Sign Up' : 'Have account? Login'}
+      <p onClick={() => setIsLogin(!isLogin)} style={{ cursor: 'pointer', textAlign: 'center', marginTop: '24px', transition: 'color 0.2s', fontSize: '14px' }}>
+        {isLogin ? "Don't have an account? " : "Already have an account? "}
+        <span style={{ color: 'var(--accent-hover)', fontWeight: '600' }}>
+          {isLogin ? 'Sign Up' : 'Login'}
+        </span>
       </p>
     </div>
   )

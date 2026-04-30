@@ -38,51 +38,83 @@ export default function App() {
   if (!user) return <Auth />
 
   return (
-    <div style={{ fontFamily: 'Arial' }}>
-      <header style={{ padding: '20px', background: '#333', color: 'white' }}>
-        <h1>📸 Souvenirs</h1>
-        <button onClick={logout} style={{ float: 'right' }}>Logout</button>
+    <div>
+      <header style={{ 
+        padding: '20px 40px', 
+        background: 'rgba(0,0,0,0.5)', 
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid var(--surface-border)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
+        <h1 style={{ margin: 0, fontSize: '24px', background: 'linear-gradient(to right, #fff, #9ba1a6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          📸 Souvenirs
+        </h1>
+        <button className="btn-secondary" onClick={logout} style={{ padding: '8px 16px', fontSize: '14px' }}>Logout</button>
       </header>
 
-      {!selectedGroup ? (
-        <div style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <CreateGroup />
-            <JoinGroup />
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }} className="animate-fade-in">
+        {!selectedGroup ? (
+          <div>
+            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '40px' }}>
+              <CreateGroup />
+              <JoinGroup />
+            </div>
+            
+            <h2 style={{ marginBottom: '24px', fontSize: '28px' }}>My Groups</h2>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+              gap: '24px' 
+            }}>
+              {myGroups.map(group => (
+                <div
+                  key={group.id}
+                  onClick={() => setSelectedGroup(group)}
+                  className="glass-panel"
+                  style={{
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)'
+                    e.currentTarget.style.borderColor = 'var(--accent-hover)'
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.borderColor = 'var(--glass-border)'
+                  }}
+                >
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>{group.name}</h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--accent-hover)' }}>Code: {group.code}</p>
+                </div>
+              ))}
+              {myGroups.length === 0 && (
+                <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>
+                  You haven't joined any groups yet. Create or join one above!
+                </p>
+              )}
+            </div>
           </div>
-          
-          <h2>My Groups</h2>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {myGroups.map(group => (
-              <div
-                key={group.id}
-                onClick={() => setSelectedGroup(group)}
-                style={{
-                  padding: '20px',
-                  border: '2px solid #333',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  minWidth: '150px'
-                }}
-              >
-                <h3>{group.name}</h3>
-                <p style={{ fontSize: '12px', color: '#666' }}>Code: {group.code}</p>
-              </div>
-            ))}
+        ) : (
+          <div className="animate-fade-in">
+            <button
+              className="btn-secondary"
+              onClick={() => setSelectedGroup(null)}
+              style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <span>←</span> Back to Groups
+            </button>
+            <h2 style={{ marginBottom: '24px', fontSize: '28px' }}>{selectedGroup.name}</h2>
+            <Gallery groupId={selectedGroup.id} />
           </div>
-        </div>
-      ) : (
-        <div>
-          <button
-            onClick={() => setSelectedGroup(null)}
-            style={{ margin: '20px', padding: '10px' }}
-          >
-            ← Back
-          </button>
-          <h2 style={{ padding: '0 20px' }}>{selectedGroup.name}</h2>
-          <Gallery groupId={selectedGroup.id} />
-        </div>
-      )}
+        )}
+      </main>
     </div>
   )
 }
