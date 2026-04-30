@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start *)",
+      "Bash(curl -s \"https://shlmoqbeiypxspuhknum.supabase.co/auth/v1/health\")",
+      "Bash(curl -s \"https://shlmoqbeiypxspuhknum.supabase.co/auth/v1/health\" -H \"apikey: sb_publishable_zFffARii_6JiVdmU2nmATA_B5Gffs4p\")"
+    ]
+  }
+}
