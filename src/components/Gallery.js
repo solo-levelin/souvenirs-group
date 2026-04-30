@@ -6,6 +6,7 @@ export default function Gallery({ groupId }) {
   const [media, setMedia] = useState([])
   const [selectedMedia, setSelectedMedia] = useState([])
   const [downloading, setDownloading] = useState(false)
+  const [viewMode, setViewMode] = useState('grid')
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -73,23 +74,53 @@ export default function Gallery({ groupId }) {
     <div className="animate-fade-in" style={{ padding: '20px' }}>
       <Upload groupId={groupId} />
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h3 style={{ margin: 0 }}>Gallery</h3>
-        {selectedMedia.length > 0 && (
-          <button 
-            className="btn-primary" 
-            onClick={downloadSelected}
-            disabled={downloading}
-          >
-            {downloading ? 'Downloading...' : `Download Selected (${selectedMedia.length})`}
-          </button>
-        )}
+        
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {media.length > 0 && (
+            <div style={{ display: 'flex', background: 'var(--surface-color)', borderRadius: '8px', padding: '4px' }}>
+              <button 
+                onClick={() => setViewMode('grid')}
+                style={{ 
+                  background: viewMode === 'grid' ? 'var(--accent-hover)' : 'transparent',
+                  color: viewMode === 'grid' ? 'white' : 'var(--text-secondary)',
+                  border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s ease'
+                }}
+              >
+                ▦ Grid
+              </button>
+              <button 
+                onClick={() => setViewMode('list')}
+                style={{ 
+                  background: viewMode === 'list' ? 'var(--accent-hover)' : 'transparent',
+                  color: viewMode === 'list' ? 'white' : 'var(--text-secondary)',
+                  border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s ease'
+                }}
+              >
+                ▬ List
+              </button>
+            </div>
+          )}
+
+          {selectedMedia.length > 0 && (
+            <button 
+              className="btn-primary" 
+              onClick={downloadSelected}
+              disabled={downloading}
+            >
+              {downloading ? 'Downloading...' : `Download Selected (${selectedMedia.length})`}
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
-        gap: '20px'
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr', 
+        gap: '20px',
+        maxWidth: viewMode === 'list' ? '800px' : '100%',
+        margin: viewMode === 'list' ? '0 auto' : '0'
       }}>
         {media.map((item) => {
           const isItemSelected = selectedMedia.includes(item.id)
@@ -135,9 +166,11 @@ export default function Gallery({ groupId }) {
                   alt="" 
                   style={{ 
                     width: '100%', 
-                    height: '220px', 
-                    objectFit: 'cover',
-                    display: 'block'
+                    height: viewMode === 'grid' ? '220px' : 'auto', 
+                    maxHeight: viewMode === 'list' ? '800px' : 'none',
+                    objectFit: viewMode === 'grid' ? 'cover' : 'contain',
+                    display: 'block',
+                    background: 'rgba(0,0,0,0.2)'
                   }}
                   onError={(e) => {
                     // Fallback to original url if optimized fails
@@ -149,12 +182,14 @@ export default function Gallery({ groupId }) {
               ) : (
                 <video 
                   src={optimizedUrl} 
-                  controls={!isItemSelected} 
+                  controls={viewMode === 'list' || !isItemSelected} 
                   style={{ 
                     width: '100%', 
-                    height: '220px',
-                    objectFit: 'cover',
-                    display: 'block'
+                    height: viewMode === 'grid' ? '220px' : 'auto',
+                    maxHeight: viewMode === 'list' ? '800px' : 'none',
+                    objectFit: viewMode === 'grid' ? 'cover' : 'contain',
+                    display: 'block',
+                    background: 'rgba(0,0,0,0.2)'
                   }}
                   onError={(e) => {
                     // Fallback to original url if optimized fails
