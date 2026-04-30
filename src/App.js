@@ -18,17 +18,17 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const fetchMyGroups = async () => {
+      const { data } = await supabase
+        .from('group_members')
+        .select('group_id, groups(*)')
+        .eq('user_id', user.id)
+
+      setMyGroups(data?.map(d => d.groups) || [])
+    }
+
     if (user) fetchMyGroups()
   }, [user])
-
-  const fetchMyGroups = async () => {
-    const { data } = await supabase
-      .from('group_members')
-      .select('group_id, groups(*)')
-      .eq('user_id', user.id)
-
-    setMyGroups(data?.map(d => d.groups) || [])
-  }
 
   const logout = async () => {
     await supabase.auth.signOut()

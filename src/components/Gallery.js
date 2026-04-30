@@ -6,18 +6,18 @@ export default function Gallery({ groupId }) {
   const [media, setMedia] = useState([])
 
   useEffect(() => {
+    const fetchMedia = async () => {
+      const { data } = await supabase
+        .from('media')
+        .select('*')
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: false })
+
+      setMedia(data || [])
+    }
+
     fetchMedia()
   }, [groupId])
-
-  const fetchMedia = async () => {
-    const { data } = await supabase
-      .from('media')
-      .select('*')
-      .eq('group_id', groupId)
-      .order('created_at', { ascending: false })
-
-    setMedia(data || [])
-  }
 
   return (
     <div>
