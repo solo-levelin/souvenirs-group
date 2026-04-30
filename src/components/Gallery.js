@@ -24,6 +24,9 @@ export default function Gallery({ groupId }) {
   const toggleSelect = (id) => {
     setSelectedMedia(prev => 
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    )
+  }
+
   const getOptimizedUrl = (url) => {
     if (!url) return '';
     // If it's a cloudinary URL, inject f_auto,q_auto for better browser support (fixes HEIC etc)
