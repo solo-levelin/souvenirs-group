@@ -12,6 +12,7 @@ export default function App() {
 
   const [editingCode, setEditingCode] = useState(false)
   const [newGroupCode, setNewGroupCode] = useState('')
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
@@ -19,6 +20,15 @@ export default function App() {
       setUser(session?.user || null)
     })
   }, [])
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-mode')
+    } else {
+      document.body.classList.remove('light-mode')
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   useEffect(() => {
     const fetchMyGroups = async () => {
@@ -57,13 +67,15 @@ export default function App() {
     }
   }
 
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+
   if (!user) return <Auth />
 
   return (
     <div>
       <header style={{ 
         padding: '20px 40px', 
-        background: 'rgba(0,0,0,0.5)', 
+        background: 'var(--glass-bg)', 
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid var(--surface-border)',
         display: 'flex',
@@ -73,10 +85,20 @@ export default function App() {
         top: 0,
         zIndex: 100
       }}>
-        <h1 style={{ margin: 0, fontSize: '24px', background: 'linear-gradient(to right, #fff, #9ba1a6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <h1 style={{ margin: 0, fontSize: '24px', background: 'linear-gradient(to right, var(--text-primary), var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           📸 Souvenirs
         </h1>
-        <button className="btn-secondary" onClick={logout} style={{ padding: '8px 16px', fontSize: '14px' }}>Logout</button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={toggleTheme} 
+            style={{ padding: '8px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Toggle Theme"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <button className="btn-secondary" onClick={logout} style={{ padding: '8px 16px', fontSize: '14px' }}>Logout</button>
+        </div>
       </header>
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }} className="animate-fade-in">
