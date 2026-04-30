@@ -27,6 +27,15 @@ export default function Gallery({ groupId }) {
     )
   }
 
+  const handleMediaError = async (id) => {
+    setMedia(prev => prev.filter(m => m.id !== id))
+    try {
+      await supabase.from('media').delete().eq('id', id)
+    } catch (e) {
+      console.error('Failed to delete broken media from DB', e)
+    }
+  }
+
   const downloadSelected = async () => {
     setDownloading(true)
     for (const id of selectedMedia) {
@@ -112,19 +121,29 @@ export default function Gallery({ groupId }) {
                 </div>
               )}
               {item.type === 'photo' ? (
-                <img src={item.url} alt="" style={{ 
-                  width: '100%', 
-                  height: '220px', 
-                  objectFit: 'cover',
-                  display: 'block'
-                }} />
+                <img 
+                  src={item.url} 
+                  alt="" 
+                  style={{ 
+                    width: '100%', 
+                    height: '220px', 
+                    objectFit: 'cover',
+                    display: 'block'
+                  }} 
+                  onError={() => handleMediaError(item.id)}
+                />
               ) : (
-                <video src={item.url} controls={!isSelected} style={{ 
-                  width: '100%', 
-                  height: '220px',
-                  objectFit: 'cover',
-                  display: 'block'
-                }} />
+                <video 
+                  src={item.url} 
+                  controls={!isSelected} 
+                  style={{ 
+                    width: '100%', 
+                    height: '220px',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }} 
+                  onError={() => handleMediaError(item.id)}
+                />
               )}
               <div style={{ padding: '12px', background: 'rgba(0,0,0,0.4)' }}>
                 <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
