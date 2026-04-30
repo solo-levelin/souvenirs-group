@@ -30,18 +30,27 @@ export default function Upload({ groupId }) {
           { method: 'POST', body: formData }
         )
         const data = await res.json()
+
+        if (data.error) {
+          throw new Error(data.error.message)
+        }
         
-        await supabase.from('media').insert([{
+        const { error: dbError } = await supabase.from('media').insert([{
           group_id: groupId,
           url: data.secure_url,
-          type: file.type.startsWith('video') ? 'video' : 'photo',
+          type: (file.type && file.type.startsWith('video')) ? 'video' : 'photo',
           uploaded_by: user.id
         }])
+
+        if (dbError) {
+          throw new Error(dbError.message)
+        }
         
         completed++;
         setProgress(Math.round((completed / files.length) * 100))
       } catch (err) {
-        console.error("Upload failed for file:", file.name, err)
+        console.error("Upload failed for file:", file?.name, err)
+        alert(`Error uploading ${file?.name || 'file'}: ${err.message}`)
       }
     })
 
