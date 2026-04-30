@@ -24,16 +24,19 @@ export default function Gallery({ groupId }) {
   const toggleSelect = (id) => {
     setSelectedMedia(prev => 
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
-    )
+  const getOptimizedUrl = (url) => {
+    if (!url) return '';
+    // If it's a cloudinary URL, inject f_auto,q_auto for better browser support (fixes HEIC etc)
+    if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+      return url.replace('/upload/', '/upload/f_auto,q_auto/');
+    }
+    return url;
   }
 
-  const handleMediaError = async (id) => {
-    setMedia(prev => prev.filter(m => m.id !== id))
-    try {
-      await supabase.from('media').delete().eq('id', id)
-    } catch (e) {
-      console.error('Failed to delete broken media from DB', e)
-    }
+  const isVideo = (item) => {
+    if (item.type === 'video') return true;
+    if (item.url && item.url.toLowerCase().match(/\.(mp4|mov|webm|ogg)$/i)) return true;
+    return false;
   }
 
   const downloadSelected = async () => {
@@ -48,7 +51,7 @@ export default function Gallery({ groupId }) {
           const a = document.createElement('a')
           a.style.display = 'none'
           a.href = url
-          const extension = item.type === 'video' ? 'mp4' : 'jpg'
+          const extension = isVideo(item) ? 'mp4' : 'jpg'
           a.download = `souvenir_${item.id}.${extension}`
           document.body.appendChild(a)
           a.click()
@@ -86,7 +89,10 @@ export default function Gallery({ groupId }) {
         gap: '20px'
       }}>
         {media.map((item) => {
-          const isSelected = selectedMedia.includes(item.id)
+          const isItemSelected = selectedMedia.includes(item.id)
+          const optimizedUrl = getOptimizedUrl(item.url)
+          const mediaIsVideo = isVideo(item)
+
           return (
             <div 
               key={item.id} 
@@ -96,12 +102,12 @@ export default function Gallery({ groupId }) {
                 overflow: 'hidden',
                 cursor: 'pointer',
                 position: 'relative',
-                border: isSelected ? '2px solid var(--accent-hover)' : '1px solid transparent',
-                transform: isSelected ? 'scale(0.98)' : 'scale(1)',
+                border: isItemSelected ? '2px solid var(--accent-hover)' : '1px solid transparent',
+                transform: isItemSelected ? 'scale(0.98)' : 'scale(1)',
                 transition: 'all 0.2s ease'
               }}
             >
-              {isSelected && (
+              {isItemSelected && (
                 <div style={{
                   position: 'absolute',
                   top: '10px',
@@ -120,29 +126,39 @@ export default function Gallery({ groupId }) {
                   ✓
                 </div>
               )}
-              {item.type === 'photo' ? (
+              {!mediaIsVideo ? (
                 <img 
-                  src={item.url} 
+                  src={optimizedUrl} 
                   alt="" 
                   style={{ 
                     width: '100%', 
                     height: '220px', 
                     objectFit: 'cover',
                     display: 'block'
-                  }} 
-                  onError={() => handleMediaError(item.id)}
+                  }}
+                  onError={(e) => {
+                    // Fallback to original url if optimized fails
+                    if (e.target.src !== item.url) {
+                      e.target.src = item.url;
+                    }
+                  }}
                 />
               ) : (
                 <video 
-                  src={item.url} 
-                  controls={!isSelected} 
+                  src={optimizedUrl} 
+                  controls={!isItemSelected} 
                   style={{ 
                     width: '100%', 
                     height: '220px',
                     objectFit: 'cover',
                     display: 'block'
-                  }} 
-                  onError={() => handleMediaError(item.id)}
+                  }}
+                  onError={(e) => {
+                    // Fallback to original url if optimized fails
+                    if (e.target.src !== item.url) {
+                      e.target.src = item.url;
+                    }
+                  }}
                 />
               )}
               <div style={{ padding: '12px', background: 'rgba(0,0,0,0.4)' }}>
